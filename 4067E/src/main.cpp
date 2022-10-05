@@ -32,7 +32,8 @@ motor flywheel2 (PORT2, ratio18_1);
 
 motor_group flywheels (flywheel1, flywheel2);
 
-motor actualFlywheel(PORT5, ratio36_1); 
+motor actualFlywheel1(PORT5, ratio36_1); 
+motor actualFlywheel2(PORT4, ratio36_1);
 
 motor_group lTrain (lBack, lFront); 
 motor_group rTrain (rBack, rFront); 
@@ -107,7 +108,7 @@ void DriveDistance(int dist, float maxTime)
   float doneTime = 0;
   while(maxTime > doneTime / 1000)
   {
-    distError = rotationGoal - lFront.rotation(deg);
+    distError = rotationGoal - lFront.rotation(deg); //
 
     integral += distError;
 
@@ -141,7 +142,7 @@ void armToggle() {
   
 }
 
-void autonomous() { 
+void autonomous1() { 
  DriveDistance(15, 10);
 }
 
@@ -155,23 +156,16 @@ void UpdateScreen(){
       Controller1.Screen.print(lFront.power());
       //Controller1.Screen.setCursor(2, 3);
       //Controller1.Screen.print(lFront.current(amp));
-      Brain.Screen.setCursor(1, 1);
+      Brain.Screen.setCursor(2, 1);
       Brain.Screen.print("actualFlywheel = 6");
       Controller1.Screen.setCursor(3, 1);
       Controller1.Screen.print("Battery: ");
       Controller1.Screen.print(Brain.Battery.capacity());
       Controller1.Screen.print("%%");
   }
-  else if (Competition.isAutonomous()) {
-      Controller1.Screen.clearScreen();
-      Controller1.Screen.setCursor(1, 1);
-      Controller1.Screen.print("Autonomous");
-      Controller1.Screen.setCursor(3, 1);
-      Controller1.Screen.print("Battery: ");
-      Controller1.Screen.print(Brain.Battery.capacity());
-      Controller1.Screen.print("%%");
-  }
-  wait(20, msec);
+
+  
+  
   
 }
 
@@ -179,11 +173,12 @@ void UpdateScreen(){
 void usercontrol(void) {
   // User control code here, inside the loop
   while (1) {
-    UpdateScreen(); 
-    
+    Brain.Screen.setCursor(1, 1); 
+    Brain.Screen.print(actualFlywheel1.temperature());
+
     //drive commands
-    lTrain.spin(vex::directionType::rev, Controller1.Axis3.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
-    rTrain.spin(vex::directionType::fwd, Controller1.Axis2.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+    lTrain.spin(vex::directionType::fwd, Controller1.Axis3.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+    rTrain.spin(vex::directionType::rev, Controller1.Axis2.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
 
     //Stops the motor if the controller joystick's position is equal to 0
     if(Controller1.Axis2.position() == 0){
@@ -197,19 +192,20 @@ void usercontrol(void) {
       lTrain.stop(vex::brake);
     }
 
-    if(Controller1.ButtonA.pressing()){
-      flywheels.spin(fwd, flywheelSpeed, pct);
-    }
-
-    if (Controller1.ButtonY.pressing()) {
-      actualFlywheel.spin(fwd,spinSpeed, pct); 
-
-    }
     
 
+    if (Controller1.ButtonY.pressing()) {
+      actualFlywheel1.spin(fwd,spinSpeed, pct); 
+      actualFlywheel2.spin(fwd,spinSpeed, pct);
+    }
+    else {
+      actualFlywheel1.spin(fwd,0,pct);
+      actualFlywheel2.spin(fwd,0,pct);
+    }
+   
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
-    Controller1.ButtonB.pressed(armToggle); 
+    
     
   }
 }
@@ -218,6 +214,7 @@ void usercontrol(void) {
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  usercontrol();
+  Competition.autonomous(autonomous1);
   Competition.drivercontrol(usercontrol); 
 }
+  
