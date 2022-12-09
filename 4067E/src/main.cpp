@@ -1,3 +1,8 @@
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// Vision6              vision        6               
+// ---- END VEXCODE CONFIGURED DEVICES ----
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
@@ -19,6 +24,8 @@ using namespace vex;
 competition Competition;
 
 controller Controller1; 
+
+
 
 motor lFront (PORT6, ratio18_1);
 motor rFront (PORT9, ratio18_1); 
@@ -51,82 +58,90 @@ float spinSpeed = 100;
 
 float flywheelSpeed = 100; 
 
+//pid
+double kP = 0.0; 
+double kI = 0.0; 
+double kD = 0.0;
+
+int desiredValue = 200; 
+
+int error; //value - desiredValue (how much more degrees to go)
+int prevError; //error 20ms ago
+int derivative; //difference between error - prevError : speed
+int totalError; 
+
+double turnkP = 0.0; 
+double turnkI = 0.0; 
+double turnkD = 0.0; 
+
+int turnError; //value - desiredValue (how much more degrees to go)
+int turnPrevError; //error 20ms ago
+int turnDerivative; //difference between error - prevError : speed
+int turnTotalError; 
 
 
-double kP = 0.25;
-double kI = 0.0;
-double kD = 0.1;
+bool enablePID = true; 
 
-double turnkP = 0.2; 
-double turnkI = 0.0;
-double turnkD = 0.1;
+/*
+int drivePID() { 
+  while(enablePID) { 
+    lTrain.resetPosition(); 
+    rTrain.resetPosition(); 
 
-//autonomous settings
-int desiredValue = 20;
-int desiredTurnValue = 0;
+    int lTrainPosition = lTrain.position(degrees);
+    int rTrainPosition = rTrain.position(degrees);
+    
+    //Lateral
+    
+    int averageMotorGroupPosition = (lTrainPosition + rTrainPosition)/2;
+    //Propotional
+    error = desiredValue - averageMotorGroupPosition; 
+    //Derivative
+    derivative = error - prevError; 
+    //Integral
+    totalError += error; 
 
-int error;//sensorvalue - desiredvalue : position
-int prevError = 0; //postion 20 msec ago
-int derivative;//error - preverror : speed
-int totalError;
+    
 
-int turnError;//sensorvalue - desiredvalue : position
-int turnPrevError = 0; //postion 20 msec ago
-int turnDerivative;//error - preverror : speed
-int turnTotalError;
+    int motorPower = (error * kP + derivative * kD + totalError * kI);
+    
+    //Turning
+   
 
-const float WHEEL_CIRCUMFERENCE = 31.9185812596;
-const float MOTOR_ACCEL_LIMIT = 8;
+    int averageMotorGroupPosition = (lTrainPosition + rTrainPosition)/2;
+    //Propotional
+    turnError = desiredValue - averageMotorGroupPosition; 
+    //Derivative
+    turnDerivative = error - prevError; 
+    //Integral
+    turnTotalError += error; 
 
-int s_lastL = 0;
-int s_lastR = 0; 
+    
 
-void DriveDistance(int dist, float maxTime)
-{
-  lBack.resetPosition();
-  rBack.resetPosition();
-  lFront.resetPosition();
-  rFront.resetPosition();
-
-  //Constant Tuning Values
-  const float Kp = 1;
-  const float Kd = 0;
-  const float Ki = 0;
-
-  float rotationGoal = (dist / WHEEL_CIRCUMFERENCE) * 360;
+    int motorPower = (error * kP + derivative * kD + totalError * kI);
 
 
+    
+    lTrain.spin(fwd, motorPower * driveSpeed, pct);
+    rTrain.spin(reverse, motorPower * driveSpeed, pct);
 
-
-  float distError = 0;
-  float integral = 0;
-  float derivative = 0;
-  float lastError = 0;
-
-  float motorSpeed = 0;
-  
-  float doneTime = 0;
-  while(maxTime > doneTime / 1000)
-  {
-    distError = rotationGoal - lFront.rotation(deg); //
-
-    integral += distError;
-
-    if(distError > 200 || distError < -200)
-    {
-      integral  = 0;
-    }
-
-    derivative = distError - lastError;
-
-    lastError = distError;
-
-    motorSpeed = Kp * distError + Ki * integral + Kd * derivative;
-    lTrain.spin(forward, motorSpeed, pct);
-    rTrain.spin(forward, motorSpeed, pct);
+    prevError  = error; 
+    wait(20, msec); 
   }
-}
 
+  return 1; 
+}
+*/
+
+
+
+
+void aimBot(bool on) { 
+  
+  //Vision6.takeSnapshot(Vision6__SIG_1);
+ 
+
+}
 
 void armToggle() {
   static bool armToggle1 = false; 
@@ -143,7 +158,9 @@ void armToggle() {
 }
 
 void autonomous1() { 
- DriveDistance(15, 10);
+  //drivePID(); 
+
+
 }
 
 void UpdateScreen(){ 
@@ -172,6 +189,7 @@ void UpdateScreen(){
 
 void usercontrol(void) {
   // User control code here, inside the loop
+  enablePID = false;
   while (1) {
     Brain.Screen.setCursor(1, 1); 
     Brain.Screen.print(actualFlywheel1.temperature());
@@ -197,12 +215,13 @@ void usercontrol(void) {
     if (Controller1.ButtonY.pressing()) {
       actualFlywheel1.spin(fwd,spinSpeed, pct); 
       actualFlywheel2.spin(fwd,spinSpeed, pct);
+      armToggle();
     }
     else {
       actualFlywheel1.spin(fwd,0,pct);
       actualFlywheel2.spin(fwd,0,pct);
     }
-   
+    
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
     
