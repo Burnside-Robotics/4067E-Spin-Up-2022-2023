@@ -6,7 +6,7 @@
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
-/*    Author:       C:\Users\cheni                                            */
+/*    Author:       Cheni & William                                           */
 /*    Created:      Thu May 19 2022                                           */
 /*    Description:  V5 project                                                */
 /*                                                                            */
@@ -34,10 +34,10 @@ motor rBack (PORT7, ratio18_1);
 
 motor arm (PORT5, ratio18_1);
 
-motor flywheel1 (PORT1, ratio18_1);
-motor flywheel2 (PORT2, ratio18_1);
+motor flywheelIntake (PORT1, ratio18_1);
+motor flywheelShoot (PORT2, ratio36_1);
 
-motor_group flywheels (flywheel1, flywheel2);
+//motor_group flywheels (flywheel1, flywheel2);
 
 motor actualFlywheel1(PORT5, ratio36_1); 
 motor actualFlywheel2(PORT4, ratio36_1);
@@ -210,9 +210,7 @@ void usercontrol(void) {
       lTrain.stop(vex::brake);
     }
 
-    
-
-    if (Controller1.ButtonY.pressing()) {
+    /*if (Controller1.ButtonY.pressing()) {
       actualFlywheel1.spin(fwd,spinSpeed, pct); 
       actualFlywheel2.spin(fwd,spinSpeed, pct);
       armToggle();
@@ -220,6 +218,24 @@ void usercontrol(void) {
     else {
       actualFlywheel1.spin(fwd,0,pct);
       actualFlywheel2.spin(fwd,0,pct);
+    } */
+
+    //intake code
+    if (Controller1.ButtonL2.pressing()){
+      flywheelIntake.spin(fwd, spinSpeed, pct);
+    } else if (Controller1.ButtonL1.pressing()) {
+      flywheelIntake.spin(fwd, -spinSpeed, pct);
+    } else{
+      flywheelIntake.spin(fwd, 0, pct);
+    } 
+
+    //shoot code
+    if (Controller1.ButtonR2.pressing()){
+      flywheelShoot.spin(fwd, spinSpeed, pct);
+    } else if (Controller1.ButtonR1.pressing()) {
+      flywheelShoot.spin(fwd, -spinSpeed, pct);
+    } else{
+      flywheelShoot.spin(fwd, 0, pct);
     }
     
     wait(20, msec); // Sleep the task for a short amount of time to
