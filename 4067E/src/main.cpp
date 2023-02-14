@@ -3,7 +3,7 @@
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
-/*    Author:       Cheni & William                                           */
+/*    Author:       C:\Users\cheni                                            */
 /*    Created:      Thu May 19 2022                                           */
 /*    Description:  V5 project                                                */
 /*                                                                            */
@@ -30,17 +30,10 @@ motor rBack (PORT7, ratio18_1);  //RIGHT BACK MOTOR
 
 motor arm (PORT5, ratio18_1);
 
-<<<<<<< Updated upstream
-motor flywheelIntake (PORT1, ratio18_1);
-motor flywheelShoot (PORT2, ratio36_1);
-
-//motor_group flywheels (flywheel1, flywheel2);
-=======
 motor frontFlywheels (PORT1, ratio18_1); //INTAKE MOTOR
 motor topFlyWheel(PORT5, ratio18_1); //SHOOTING FLY WHEEL MOTOR
 motor rollerSpin (PORT12, ratio18_1); //MOTOR THAT SPINS ROLLER ON FIELD
 
->>>>>>> Stashed changes
 
 motor_group lTrain (lBack, lFront); //LEFT DRIVETRAIN
 motor_group rTrain (rBack, rFront); //RIGHT DRIVETRAIN
@@ -267,34 +260,6 @@ void usercontrol(void) {
       lTrain.stop(vex::brake);
     }
 
-<<<<<<< Updated upstream
-    /*if (Controller1.ButtonY.pressing()) {
-      actualFlywheel1.spin(fwd,spinSpeed, pct); 
-      actualFlywheel2.spin(fwd,spinSpeed, pct);
-      armToggle();
-    }
-    else {
-      actualFlywheel1.spin(fwd,0,pct);
-      actualFlywheel2.spin(fwd,0,pct);
-    } */
-
-    //intake code
-    if (Controller1.ButtonL2.pressing()){
-      flywheelIntake.spin(fwd, spinSpeed, pct);
-    } else if (Controller1.ButtonL1.pressing()) {
-      flywheelIntake.spin(fwd, -spinSpeed, pct);
-    } else{
-      flywheelIntake.spin(fwd, 0, pct);
-    } 
-
-    //shoot code
-    if (Controller1.ButtonR2.pressing()){
-      flywheelShoot.spin(fwd, spinSpeed, pct);
-    } else if (Controller1.ButtonR1.pressing()) {
-      flywheelShoot.spin(fwd, -spinSpeed, pct);
-    } else{
-      flywheelShoot.spin(fwd, 0, pct);
-=======
     
     if(Controller1.ButtonR1.pressing()) { 
       frontFlywheels.spin(reverse, 100, pct); 
@@ -355,7 +320,6 @@ void usercontrol(void) {
     else {
        
       rearShooter1.set(false);
->>>>>>> Stashed changes
     }
 
     
