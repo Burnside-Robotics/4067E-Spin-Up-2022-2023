@@ -1,7 +1,4 @@
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// Vision6              vision        6               
+              
 // ---- END VEXCODE CONFIGURED DEVICES ----
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
@@ -16,6 +13,7 @@
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
+#include <iostream>
 
 using namespace vex;
 
@@ -25,27 +23,35 @@ competition Competition;
 
 controller Controller1; 
 
-
-
-motor lFront (PORT6, ratio18_1);
-motor rFront (PORT9, ratio18_1); 
-motor lBack (PORT8, ratio18_1);
-motor rBack (PORT7, ratio18_1); 
+motor lFront (PORT6, ratio18_1, true); //LEFT FRONT MOTOR 
+motor rFront (PORT9, ratio18_1); //RIGHT FRONT MOTOR 
+motor lBack (PORT8, ratio18_1, true);  //LEFT BACK MOTOR
+motor rBack (PORT7, ratio18_1);  //RIGHT BACK MOTOR
 
 motor arm (PORT5, ratio18_1);
 
+<<<<<<< Updated upstream
 motor flywheelIntake (PORT1, ratio18_1);
 motor flywheelShoot (PORT2, ratio36_1);
 
 //motor_group flywheels (flywheel1, flywheel2);
+=======
+motor frontFlywheels (PORT1, ratio18_1); //INTAKE MOTOR
+motor topFlyWheel(PORT5, ratio18_1); //SHOOTING FLY WHEEL MOTOR
+motor rollerSpin (PORT12, ratio18_1); //MOTOR THAT SPINS ROLLER ON FIELD
 
-motor actualFlywheel1(PORT5, ratio36_1); 
-motor actualFlywheel2(PORT4, ratio36_1);
+>>>>>>> Stashed changes
 
-motor_group lTrain (lBack, lFront); 
-motor_group rTrain (rBack, rFront); 
+motor_group lTrain (lBack, lFront); //LEFT DRIVETRAIN
+motor_group rTrain (rBack, rFront); //RIGHT DRIVETRAIN
+
+
 
 drivetrain Train (lTrain, rTrain); 
+
+
+
+color teamColor = blue;  //if we are in blue team set this to true and redTeam = false 
 
 float frontSpeed = 1  ;
 float backSpeed = 1;
@@ -56,147 +62,198 @@ float deflectorSpeed = 50;
 
 float spinSpeed = 100; 
 
-float flywheelSpeed = 100; 
+//flywheel variables
+
+
+float flywheelSpeed = 75; 
+
+//penumatics
+bool ShooterBool = false;
+
+//reverseDrive
+bool reverseDrive = false; 
+
+//turnpid
+double turnKp = 1; 
+
 
 //pid
-double kP = 0.0; 
-double kI = 0.0; 
+double kP = 0.2; 
+double kI = 0.; 
 double kD = 0.0;
 
-int desiredValue = 200; 
+float wheelCircumferenceIch = 12.566370;
 
-int error; //value - desiredValue (how much more degrees to go)
-int prevError; //error 20ms ago
-int derivative; //difference between error - prevError : speed
-int totalError; 
-
-double turnkP = 0.0; 
-double turnkI = 0.0; 
-double turnkD = 0.0; 
-
-int turnError; //value - desiredValue (how much more degrees to go)
-int turnPrevError; //error 20ms ago
-int turnDerivative; //difference between error - prevError : speed
-int turnTotalError; 
-
-
-bool enablePID = true; 
-
-/*
-int drivePID() { 
-  while(enablePID) { 
-    lTrain.resetPosition(); 
-    rTrain.resetPosition(); 
+int driveDistance(float targetDistance) {
+  float integral = 0;
+  float prevError = 0; 
+  float prevTime = 0; 
+  lTrain.resetPosition();
+  rTrain.resetPosition();
+  float targetDeg = targetDistance / wheelCircumferenceIch * 360; 
+  while (1) {
 
     int lTrainPosition = lTrain.position(degrees);
     int rTrainPosition = rTrain.position(degrees);
-    
-    //Lateral
-    
-    int averageMotorGroupPosition = (lTrainPosition + rTrainPosition)/2;
-    //Propotional
-    error = desiredValue - averageMotorGroupPosition; 
-    //Derivative
-    derivative = error - prevError; 
-    //Integral
-    totalError += error; 
 
+    int averageMotorGroupPosition = (lTrainPosition + rTrainPosition) / 2;
+    // Propotional
+    float error = targetDeg - averageMotorGroupPosition;
     
 
-    int motorPower = (error * kP + derivative * kD + totalError * kI);
+    float deltaTime = (vex::timer::system() - prevTime); 
+    prevTime= vex::timer::system();
+    integral += prevError * deltaTime;
     
-    //Turning
-   
+    int motorPower = (error * kP + integral * kI);
 
-    int averageMotorGroupPosition = (lTrainPosition + rTrainPosition)/2;
-    //Propotional
-    turnError = desiredValue - averageMotorGroupPosition; 
-    //Derivative
-    turnDerivative = error - prevError; 
-    //Integral
-    turnTotalError += error; 
+    lTrain.spin(forward, motorPower * driveSpeed, pct);
+    rTrain.spin(forward, motorPower * driveSpeed, pct);
 
+    std::cout << error ;
+     
+
+    prevError = error; 
     
+    wait(20, msec);
 
-    int motorPower = (error * kP + derivative * kD + totalError * kI);
+  }
+  return 1;
+}
 
+void turnLeft() { 
+  lTrain.spinFor(reverse, 90, degrees);
+  rTrain.spinFor(fwd, 90, degrees);
+}
 
+/*
+void aimBot() { 
+  while(1){
+    Vision20.takeSnapshot(Vision20__SIG_1);
+    if (Vision20.largestObject.centerX < 138) { 
+      rTrain.spin(reverse, 30, pct);
+      Controller1.Screen.clearScreen();
+      Controller1.Screen.setCursor(1, 0);
+      Controller1.Screen.print("movingleft");
+      Vision20.takeSnapshot(Vision20__SIG_1);
+    }
     
-    lTrain.spin(fwd, motorPower * driveSpeed, pct);
-    rTrain.spin(reverse, motorPower * driveSpeed, pct);
-
-    prevError  = error; 
-    wait(20, msec); 
+    else if (Vision20.largestObject.centerX > 178){
+      lTrain.spin(fwd, 30, pct);
+      Controller1.Screen.clearScreen();
+      Controller1.Screen.setCursor(2, 2);
+      Controller1.Screen.print("movingRight");
+      Vision20.takeSnapshot(Vision20__SIG_1);
+    } 
+    else if(Vision20.largestObject.centerX < 138 && Vision20.largestObject.centerX > 178) { 
+      lTrain.spin(forward, 30, pct); 
+      rTrain.spin(forward, 30, pct);
+    }
+    else { 
+      lTrain.stop();
+      rTrain.stop();
+      Controller1.Screen.clearScreen();
+      Controller1.Screen.setCursor(3, 2);
+      Controller1.Screen.print("Straight");
+      Vision20.takeSnapshot(Vision20__SIG_1);
+      Vision20.takeSnapshot(Vision20__SIG_1);
+    }
   }
 
-  return 1; 
+
 }
 */
 
-
-
-
-void aimBot(bool on) { 
-  
-  //Vision6.takeSnapshot(Vision6__SIG_1);
- 
+void toggleFlywheel(){ 
 
 }
 
-void armToggle() {
-  static bool armToggle1 = false; 
+void goForward(int deg) { 
+  lTrain.spin(fwd, deg, percent);
+  rTrain.spin(fwd, deg, percent);
+}
+//Toggle Reverse Drive 
+void reversed() { 
+  reverseDrive = !reverseDrive; 
+}
 
-  armToggle1 = !armToggle1; 
-  if (armToggle1 == true) { 
-    arm.spinFor(90, degrees); 
+//Switch Team Color
+void switchTeam(){
+  if(teamColor == blue) { 
+    teamColor = red; 
+    
+    Controller1.Screen.setCursor(3, 1);
+    Controller1.Screen.print("Team Color: ");
+    Controller1.Screen.print("Blue");
   }
-  else { 
-    arm.spinFor(-90, degrees); 
+  else  {
+    teamColor = blue; 
+    Controller1.Screen.setCursor(3, 1);
+    Controller1.Screen.print("Team Color: ");
+    Controller1.Screen.print("Red ");
   }
   
   
 }
 
-void autonomous1() { 
-  //drivePID(); 
 
 
-}
+//Auto Spin roller with optical sensor
 
-void UpdateScreen(){ 
-  if (Competition.isDriverControl()) 
-    {
-      Controller1.Screen.clearScreen();
-      Controller1.Screen.setCursor(1, 1);
-      Controller1.Screen.print("User Control Active");
-      Controller1.Screen.setCursor(2, 1);
-      Controller1.Screen.print(lFront.power());
-      //Controller1.Screen.setCursor(2, 3);
-      //Controller1.Screen.print(lFront.current(amp));
-      Brain.Screen.setCursor(2, 1);
-      Brain.Screen.print("actualFlywheel = 6");
-      Controller1.Screen.setCursor(3, 1);
-      Controller1.Screen.print("Battery: ");
-      Controller1.Screen.print(Brain.Battery.capacity());
-      Controller1.Screen.print("%%");
+
+void UpdateScreen() {
+  if (Competition.isDriverControl()) {
+    Controller1.Screen.clearScreen();
+    Controller1.Screen.setCursor(1, 1);
+    Controller1.Screen.print("User Control Active");
+    Controller1.Screen.setCursor(2, 1);
+    Controller1.Screen.print("Battery: ");
+    Controller1.Screen.print(Brain.Battery.capacity());
+    
+    
+    Brain.Screen.clearScreen();
+    Brain.Screen.setCursor(1, 1);
+    Brain.Screen.print("left Front: PORT");
+    Brain.Screen.setCursor(2, 1);
+    Brain.Screen.print("left Front: PORT");
+    Brain.Screen.setCursor(3, 1);
+    Brain.Screen.print("left Front: PORT");
+    Brain.Screen.setCursor(4, 1);
+    Brain.Screen.print("left Front: PORT");
   }
-
-  
-  
-  
 }
 
+void turn() { 
+  lTrain.spinFor(double rotation, rotationUnits units, double velocity, velocityUnits units_v)
+  lTrain.spinFor(double time, timeUnits units, double velocity, velocityUnits units_v)
+  lTrain.spinFor(fwd, 380, degrees);
+  rTrain.spinFor(reverse, 380, degrees, 80, velocityUnits::);
+}
+
+void auton() { 
+  turn();
+  
+
+  
+
+}
 
 void usercontrol(void) {
   // User control code here, inside the loop
-  enablePID = false;
+  
   while (1) {
-    Brain.Screen.setCursor(1, 1); 
-    Brain.Screen.print(actualFlywheel1.temperature());
+    Brain.Screen.setCursor(1, 1);
 
+    
     //drive commands
-    lTrain.spin(vex::directionType::fwd, Controller1.Axis3.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
-    rTrain.spin(vex::directionType::rev, Controller1.Axis2.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+    if (reverseDrive == false) { 
+      lTrain.spin(vex::directionType::rev, Controller1.Axis3.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+      rTrain.spin(vex::directionType::rev, Controller1.Axis2.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+    }
+    else { 
+      lTrain.spin(vex::directionType::fwd, Controller1.Axis2.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+      rTrain.spin(vex::directionType::fwd, Controller1.Axis3.position(vex::percentUnits::pct) * driveSpeed, vex::velocityUnits::pct);
+    }
 
     //Stops the motor if the controller joystick's position is equal to 0
     if(Controller1.Axis2.position() == 0){
@@ -210,6 +267,7 @@ void usercontrol(void) {
       lTrain.stop(vex::brake);
     }
 
+<<<<<<< Updated upstream
     /*if (Controller1.ButtonY.pressing()) {
       actualFlywheel1.spin(fwd,spinSpeed, pct); 
       actualFlywheel2.spin(fwd,spinSpeed, pct);
@@ -236,20 +294,84 @@ void usercontrol(void) {
       flywheelShoot.spin(fwd, -spinSpeed, pct);
     } else{
       flywheelShoot.spin(fwd, 0, pct);
-    }
+=======
     
+    if(Controller1.ButtonR1.pressing()) { 
+      frontFlywheels.spin(reverse, 100, pct); 
+    }
+    else if(Controller1.ButtonR2.pressing()){
+      frontFlywheels.spin(fwd, 100, pct);
+    }
+    else if (Controller1.ButtonB.pressing()) {
+      frontFlywheels.spin(fwd, 50, pct);
+    }
+    else { 
+      frontFlywheels.stop(coast);
+    }
+
+    
+    if(Controller1.ButtonL1.pressing()) { 
+      topFlyWheel.spin(reverse, flywheelSpeed, pct); 
+    }
+    else if (Controller1.ButtonUp.pressing()) {
+      topFlyWheel.spin(fwd, flywheelSpeed, pct); 
+    }
+    else { 
+      topFlyWheel.stop(coast);
+    }
+
+    //Color Switcher
+    if(Controller1.ButtonL2.pressing()){
+      if (teamColor == blue) {
+        if (Optical1.color() == red) {
+          frontFlywheels.spin(fwd, 80, pct);
+        } 
+        else {
+          frontFlywheels.stop(brake);
+        }
+      } 
+      else {
+        if (Optical1.color() == blue) {
+          frontFlywheels.spin(fwd, 80, pct);
+        } 
+        else {
+          frontFlywheels.stop(brake);
+        }
+      } 
+    } 
+    else {
+      // REMOVE THIS IF ROBOT NOT WOKRING
+    }
+
+   
+
+    if (Controller1.ButtonX.pressing()) {
+      rearShooter1.set(true);
+      wait(100, msec);
+      rearShooter1.set(false);
+      wait(500, msec); 
+    
+    }
+    else {
+       
+      rearShooter1.set(false);
+>>>>>>> Stashed changes
+    }
+
+    
+
+
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
-    
-    
   }
 }
 
-
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
+  Controller1.ButtonLeft.pressed(switchTeam);
+  Controller1.ButtonRight.pressed(reversed);
   vexcodeInit();
-  Competition.autonomous(autonomous1);
+  Competition.autonomous(auton);
   Competition.drivercontrol(usercontrol); 
 }
   

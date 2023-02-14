@@ -9,7 +9,10 @@ brain  Brain;
 
 // VEXcode device constructors
 /*vex-vision-config:begin*/
-vision Vision6 = vision (PORT6, 50);
+signature Vision20__SIG_1 = signature (1, 3043, 10163, 6602, -1017, 765, -126, 1, 0);
+vision Vision20 = vision (PORT20, 42, Vision20__SIG_1);
+digital_out rearShooter1 = digital_out(Brain.ThreeWirePort.A);
+optical Optical1 = optical(PORT2);
 /*vex-vision-config:end*/
 
 // VEXcode generated functions
