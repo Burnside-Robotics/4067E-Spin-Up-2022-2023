@@ -14,6 +14,7 @@ extern signature Vision20__SIG_6;
 extern signature Vision20__SIG_7;
 extern vision Vision20;
 extern digital_out rearShooter1;  
+extern digital_out expansion;
 extern optical Optical1; 
 
 /**

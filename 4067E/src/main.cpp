@@ -58,7 +58,7 @@ float spinSpeed = 100;
 //flywheel variables
 
 
-float flywheelSpeed = 75; 
+float flywheelSpeed = 65; 
 
 //penumatics
 bool ShooterBool = false;
@@ -66,14 +66,15 @@ bool ShooterBool = false;
 //reverseDrive
 bool reverseDrive = false; 
 
-//turnpid
-double turnKp = 1; 
+//turn
+float ratio = 1/18; 
 
 
 //pid
 double kP = 0.2; 
 double kI = 0.; 
 double kD = 0.0;
+
 
 float wheelCircumferenceIch = 12.566370;
 
@@ -114,9 +115,16 @@ int driveDistance(float targetDistance) {
   return 1;
 }
 
-void turnLeft() { 
-  lTrain.spinFor(reverse, 90, degrees);
-  rTrain.spinFor(fwd, 90, degrees);
+void turnLeft(float turnDegrees) { 
+  float motorDeg = (turnDegrees * ratio * 360)/2;
+  lTrain.spinFor(reverse, motorDeg, degrees, 60, velocityUnits::pct);
+  rTrain.spinFor(fwd, motorDeg, degrees);
+}
+
+void turnRight(float turnDegrees) { 
+  float motorDeg = (turnDegrees * ratio * 360)/2;
+  lTrain.spinFor(fwd, motorDeg, degrees, 60, velocityUnits::pct);
+  rTrain.spinFor(reverse, motorDeg, degrees);
 }
 
 /*
@@ -157,14 +165,7 @@ void aimBot() {
 }
 */
 
-void toggleFlywheel(){ 
 
-}
-
-void goForward(int deg) { 
-  lTrain.spin(fwd, deg, percent);
-  rTrain.spin(fwd, deg, percent);
-}
 //Toggle Reverse Drive 
 void reversed() { 
   reverseDrive = !reverseDrive; 
@@ -217,14 +218,20 @@ void UpdateScreen() {
 }
 
 void turn() { 
+  /*
   lTrain.spinFor(double rotation, rotationUnits units, double velocity, velocityUnits units_v)
   lTrain.spinFor(double time, timeUnits units, double velocity, velocityUnits units_v)
   lTrain.spinFor(fwd, 380, degrees);
   rTrain.spinFor(reverse, 380, degrees, 80, velocityUnits::);
+  */
+  
 }
 
 void auton() { 
-  turn();
+  driveDistance(20);
+  driveDistance(-20);
+  turnLeft(360);
+
   
 
   
@@ -233,7 +240,8 @@ void auton() {
 
 void usercontrol(void) {
   // User control code here, inside the loop
-  
+  float endTime = 0; 
+  float countTime =  0;
   while (1) {
     Brain.Screen.setCursor(1, 1);
 
@@ -324,7 +332,7 @@ void usercontrol(void) {
 
     
 
-
+    
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }

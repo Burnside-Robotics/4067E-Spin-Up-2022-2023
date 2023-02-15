@@ -12,7 +12,9 @@ brain  Brain;
 signature Vision20__SIG_1 = signature (1, 3043, 10163, 6602, -1017, 765, -126, 1, 0);
 vision Vision20 = vision (PORT20, 42, Vision20__SIG_1);
 digital_out rearShooter1 = digital_out(Brain.ThreeWirePort.A);
+digital_out expansion = digital_out(Brain.ThreeWirePort.B);
 optical Optical1 = optical(PORT2);
+
 /*vex-vision-config:end*/
 
 // VEXcode generated functions
